@@ -4,6 +4,7 @@ import os
 import re
 from datetime import datetime
 
+
 def get_youtube_subscribers(handle):
     url = f"https://www.youtube.com/{handle}"
     headers = {
@@ -26,4 +27,27 @@ def get_youtube_subscribers(handle):
     except Exception as e:
         return f"ERROR:{e}"
 
-channels
+
+channels = {
+    "好房網": "@ohousefun",
+    "5168實價登錄比價王": "@5168houseprice",
+    "35線上賞屋": "@35visitchannel",
+    "樂居": "@leju",
+    "591旗艦房產": "@591newhouse",
+}
+
+today = datetime.today().strftime("%Y-%m-%d")
+rows = []
+
+for name, handle in channels.items():
+    subs = get_youtube_subscribers(handle)
+    print(f"{name}: {subs}")
+    rows.append([today, "YOUTUBE", name, handle, subs])
+
+os.makedirs("data", exist_ok=True)
+with open("data/latest.csv", "w", newline="", encoding="utf-8") as f:
+    writer = csv.writer(f)
+    writer.writerow(["date", "platform", "account_name", "account_id", "followers"])
+    writer.writerows(rows)
+
+print("完成，已寫入 data/latest.csv")
