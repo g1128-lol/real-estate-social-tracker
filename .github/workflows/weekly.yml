@@ -1,0 +1,32 @@
+name: 每週社群數據抓取
+
+on:
+  schedule:
+    - cron: '0 1 * * 1'  # 每週一 台灣時間早上9點
+  workflow_dispatch:       # 允許手動觸發
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 取得程式碼
+        uses: actions/checkout@v4
+
+      - name: 安裝 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安裝套件
+        run: pip install requests beautifulsoup4
+
+      - name: 執行抓取
+        run: python scraper/fetch_data.py
+
+      - name: 推送結果到 GitHub
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add data/latest.csv
+          git commit -m "每週更新：$(date '+%Y-%m-%d')" || echo "沒有變更"
+          git push
