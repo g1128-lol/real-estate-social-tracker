@@ -1,48 +1,39 @@
 import requests
 import csv
 import os
-import re
 from datetime import datetime
 
-
-def get_youtube_subscribers(handle):
-    url = f"https://www.youtube.com/{handle}"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept-Language": "zh-TW,zh;q=0.9,en;q=0.8",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    }
-    try:
-        res = requests.get(url, headers=headers, timeout=15)
-        patterns = [
-            r'"subscriberCountText":\{"simpleText":"([^"]+)"',
-            r'"shortSubscriberCountText":\{"simpleText":"([^"]+)"',
-            r'"subscriberCount":"(\d+)"',
-        ]
-        for pattern in patterns:
-            match = re.search(pattern, res.text)
-            if match:
-                return match.group(1)
-        return "N/A"
-    except Exception as e:
-        return f"ERROR:{e}"
-
+API_KEY = os.environ.get("YOUTUBE_API_KEY")
 
 channels = {
-    "好房網": "@ohousefun",
-    "5168實價登錄比價王": "@5168houseprice",
-    "35線上賞屋": "@35visitchannel",
-    "樂居": "@leju",
-    "591旗艦房產": "@591newhouse",
+    "好房網": "UCub_c6M78NnPwe_WyOpSe1A",
+    "5168實價登錄比價王": "UC6A-kU7A5HkN8LtiBPiq5aQ",
+    "35線上賞屋": "UCnWB4yjKnm6AeW-pj4E3dQw",
+    "樂居": "UC4QPIwv37y0_u6yGKXHMvAA",
+    "591旗艦房產": "UC_5AjKFz3tww1WSPzM6wF1A",
 }
+
+def get_subscribers(channel_id):
+    url = "https://www.googleapis.com/youtube/v3/channels"
+    params = {
+        "part": "statistics",
+        "id": channel_id,
+        "key": API_KEY,
+    }
+    try:
+        res = requests.get(url, params=params, timeout=15)
+        data = res.json()
+        return data["items"][0]["statistics"]["subscriberCount"]
+    except Exception as e:
+        return f"ERROR:{e}"
 
 today = datetime.today().strftime("%Y-%m-%d")
 rows = []
 
-for name, handle in channels.items():
-    subs = get_youtube_subscribers(handle)
+for name, channel_id in channels.items():
+    subs = get_subscribers(channel_id)
     print(f"{name}: {subs}")
-    rows.append([today, "YOUTUBE", name, handle, subs])
+    rows.append([today, "YOUTUBE", name, channel_id, subs])
 
 os.makedirs("data", exist_ok=True)
 with open("data/latest.csv", "w", newline="", encoding="utf-8") as f:
