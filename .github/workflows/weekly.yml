@@ -2,8 +2,8 @@ name: 每週社群數據抓取
 
 on:
   schedule:
-    - cron: '0 1 * * 1'  # 每週一 台灣時間早上9點
-  workflow_dispatch:       # 允許手動觸發
+    - cron: '0 1 * * 1'
+  workflow_dispatch:
 
 jobs:
   fetch:
@@ -18,9 +18,11 @@ jobs:
           python-version: '3.11'
 
       - name: 安裝套件
-        run: pip install requests beautifulsoup4
+        run: pip install requests
 
       - name: 執行抓取
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: python scraper/fetch_data.py
 
       - name: 推送結果到 GitHub
